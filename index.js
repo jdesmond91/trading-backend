@@ -27,6 +27,10 @@ app.get('/', (req, res) => {
 	res.send('hello world')
 })
 
+app.get('/api/notes', (req, res) => {
+	res.send(JSON.stringify(notes))
+})
+
 const PORT = 3001
 
 app.listen(PORT, () => {
