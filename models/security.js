@@ -6,5 +6,14 @@ const securitySchema = new mongoose.Schema({
 	price: { type: Number, required: true },
 })
 
+// when toJSON is called, delete mongoose id and version and return id as string
+securitySchema.set('toJSON', {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString()
+		delete returnedObject._id
+		delete returnedObject.__v
+	},
+})
+
 // export compiled model based on the above schema
 module.exports = mongoose.model('Security', securitySchema)
