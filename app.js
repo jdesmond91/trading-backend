@@ -27,3 +27,5 @@ mongoose
 	.catch((error) => {
 		logger.error('Error connecting to MongoDB:', error.message)
 	})
+
+module.exports = app
