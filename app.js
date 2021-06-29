@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const config = require('./utils/config')
 const securitiesRouter = require('./controllers/securities')
+const ordersRouter = require('./controllers/orders')
 const logger = require('./utils/logger')
 
 const app = express()
@@ -10,6 +11,7 @@ const app = express()
 // attaches request JSON data to body property of request objects
 app.use(express.json())
 app.use('/api/securities', securitiesRouter)
+app.use('/api/orders', ordersRouter)
 
 mongoose
 	.connect(config.MONGODB_URI, {
