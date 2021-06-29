@@ -36,4 +36,18 @@ securitiesRouter.post('/', async (req, res) => {
 	}
 })
 
+securitiesRouter.delete('/:id', async (req, res) => {
+	try {
+		await Security.findByIdAndDelete(req.params.id)
+		res.status(204).end()
+	} catch (err) {
+		const message = 'Could not delete security from database'
+		logger.error({
+			message: message,
+			error: err,
+		})
+		res.status(400).json(message)
+	}
+})
+
 module.exports = securitiesRouter
