@@ -1,29 +1,12 @@
 const Order = require('../models/order')
-const Position = require('../models/position')
-const Transaction = require('../models/transaction')
 const ordersRouter = require('express').Router()
-const { upsertPosition } = require('./helpers')
+const {
+	upsertPosition,
+	insertTransaction,
+	getCashPosition,
+	updateCashPosition,
+} = require('./helpers')
 const logger = require('../utils/logger')
-
-const insertTransaction = async (type, amount, orderId) => {
-	try {
-		const newTransaction = new Transaction({
-			type: type,
-			date: new Date(),
-			amount: amount,
-			order: orderId,
-		})
-
-		await newTransaction.save()
-	} catch (err) {
-		const message = 'Could not save new transaction to database'
-		logger.error({
-			message: message,
-			error: err,
-		})
-		res.status(400).json(message)
-	}
-}
 
 ordersRouter.get('/', async (req, res) => {
 	try {
@@ -41,6 +24,10 @@ ordersRouter.get('/', async (req, res) => {
 
 ordersRouter.post('/', async (req, res) => {
 	try {
+		let cashPosition
+		const total = req.body.price * req.body.quantity
+		const type = req.body.type
+
 		const newOrder = new Order({
 			type: req.body.type,
 			submitDate: new Date(),
@@ -49,29 +36,28 @@ ordersRouter.post('/', async (req, res) => {
 			quantity: req.body.quantity,
 		})
 
-		try {
-			upsertPosition(req.body.securityId, req.body.quantity)
-		} catch (err) {
-			const message = 'Could not save new position to database'
-			logger.error({
-				message: message,
-				error: err,
-			})
-			res.status(400).json(message)
+		cashPosition = await getCashPosition()
+
+		// if the order is a buy, ensure there is enough cash to complete it
+		if (type === 'BUY') {
+			if (cashPosition.quantity < total) throw new Error('Not enough cash to complete order!')
 		}
 
+		await updateCashPosition(cashPosition, total, type)
 		await newOrder.save()
 
-		// create a new transaction with the order
-		insertTransaction(req.body.type, req.body.price * req.body.quantity, newOrder.id)
+		try {
+			await upsertPosition(req.body.securityId, req.body.quantity)
+			await insertTransaction(req.body.type, total, newOrder.id)
+		} catch (err) {
+			logger.error(err)
+			throw new Error('Could not save position or transaction to database')
+		}
+
 		res.status(201).json(newOrder)
 	} catch (err) {
-		const message = 'Could not save new order to database'
-		logger.error({
-			message: message,
-			error: err,
-		})
-		res.status(400).json(message)
+		logger.error(err)
+		res.status(400).json(err.message)
 	}
 })
 
