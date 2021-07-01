@@ -1,6 +1,7 @@
 const Position = require('../models/position')
 const Order = require('../models/order')
 const Security = require('../models/security')
+const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 
 const upsertPosition = async (securityId, quantity) => {
@@ -29,12 +30,18 @@ const upsertPosition = async (securityId, quantity) => {
 	}
 }
 
-const getCAD = async () => {
+const insertTransaction = async (type, amount, orderId) => {
 	try {
-		const CAD = await Security.findOne({ name: 'Canadian Dollar' })
-		return CAD.id
+		const newTransaction = new Transaction({
+			type: type,
+			date: new Date(),
+			amount: amount,
+			order: orderId,
+		})
+
+		await newTransaction.save()
 	} catch (err) {
-		const message = 'Could not retreive CAD from database'
+		const message = 'Could not save new transaction to database'
 		logger.error({
 			message: message,
 			error: err,
@@ -43,6 +50,38 @@ const getCAD = async () => {
 	}
 }
 
-const validateOrder = async () => {}
+const getCAD = async () => {
+	try {
+		const CAD = await Security.findOne({ name: 'Canadian Dollar' })
+		if (CAD) return CAD.id
+		else throw new Error('Could not retrieve CAD security from database')
+	} catch (err) {
+		throw err
+	}
+}
 
-module.exports = { upsertPosition, getCAD }
+const getCashPosition = async () => {
+	try {
+		const securityIdCAD = await getCAD()
+		const cash = await Position.findOne({ security: securityIdCAD })
+		if (cash) return cash
+		else throw new Error('Could not retrieve cash position from database')
+	} catch (err) {
+		throw err
+	}
+}
+
+const updateCashPosition = async (cashPosition, total, orderType) => {
+	// subtract from cash if its a BUY, add to cash if its a SELL
+	cashPosition.quantity =
+		orderType === 'BUY' ? cashPosition.quantity - total : cashPosition.quantity + total
+	await cashPosition.save()
+}
+
+module.exports = {
+	upsertPosition,
+	insertTransaction,
+	getCAD,
+	getCashPosition,
+	updateCashPosition,
+}
