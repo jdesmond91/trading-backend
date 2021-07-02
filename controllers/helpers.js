@@ -4,38 +4,100 @@ const Security = require('../models/security')
 const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 
-const upsertPosition = async (securityId, quantity) => {
+const upsertPosition = async (securityId, quantity, type) => {
 	const position = await Position.findOne({ security: securityId })
+	let newPosition
 
-	// if there is an existing position, add the new quantity to the current quantity
-	// else create new position with the current quantity
-	if (position) {
-		// new set to true will return the updated position rather than the original position
-		const updatedPosition = await Position.findByIdAndUpdate(
-			position.id,
-			{ quantity: quantity + position.quantity },
-			{
-				new: true,
-			}
-		)
+	logger.info('Retrieved position', position)
 
-		await updatedPosition.save()
+	if (type === 'DEPOSIT') {
+		logger.info('Initiating DEPOSIT')
+		// if there is an existing position, add the new quantity to the current quantity
+		// else create new position with the current quantity
+		if (position) {
+			// new set to true will return the updated position rather than the original position
+			newPosition = await Position.findByIdAndUpdate(
+				position.id,
+				{ quantity: quantity + position.quantity },
+				{
+					new: true,
+				}
+			)
+			await newPosition.save()
+			logger.info('Position successfully updated', newPosition)
+		} else {
+			newPosition = new Position({
+				security: securityId,
+				quantity: quantity,
+			})
+
+			await newPosition.save()
+			logger.info('Position successfully inserted', newPosition)
+		}
+		return newPosition
+	}
+
+	if (type === 'BUY') {
+		logger.info('Initiating BUY')
+		// if there is an existing position, add the new quantity to the current quantity
+		// else create new position with the current quantity
+		if (position) {
+			// new set to true will return the updated position rather than the original position
+			newPosition = await Position.findByIdAndUpdate(
+				position.id,
+				{ quantity: position.quantity + quantity },
+				{
+					new: true,
+				}
+			)
+			await newPosition.save()
+			logger.info('Position successfully updated', newPosition)
+		} else {
+			newPosition = new Position({
+				security: securityId,
+				quantity: quantity,
+			})
+			await newPosition.save()
+			logger.info('Position successfully inserted', newPosition)
+		}
+		return newPosition
+	}
+
+	if (type === 'SELL') {
+		logger.info('Initiating SELL')
+		// if selling all positions, then delete the record from the database
+		if (position.quantity - quantity === 0) {
+			await Position.findByIdAndDelete(position.id)
+			logger.info('Position successfully deleted')
+		} else if (position.quantity < quantity) {
+			logger.error('Held position quantity', position.quantity)
+			logger.error('Sell osition quantity', quantity)
+			throw new Error('Cannot sell more positions than held')
+		} else {
+			// if only selling a subset of positions, then update the position quantity
+			// new set to true will return the updated position rather than the original position
+			newPosition = await Position.findByIdAndUpdate(
+				position.id,
+				{ quantity: position.quantity - quantity },
+				{
+					new: true,
+				}
+			)
+			await newPosition.save()
+			logger.info('Position successfully updated', newPosition)
+		}
+		return newPosition
 	} else {
-		const newPosition = new Position({
-			security: securityId,
-			quantity: quantity,
-		})
-
-		await newPosition.save()
+		throw new Error('Cannot retrieve position from database')
 	}
 }
 
-const insertTransaction = async (type, amount, orderId) => {
+const insertTransaction = async (type, quantity, orderId) => {
 	try {
 		const newTransaction = new Transaction({
 			type: type,
 			date: new Date(),
-			amount: amount,
+			quantity: quantity,
 			order: orderId,
 		})
 
@@ -60,21 +122,28 @@ const getCAD = async () => {
 	}
 }
 
+const getPosition = async (securityId) => {
+	try {
+		return await Position.findOne({ security: securityId })
+	} catch (err) {
+		logger.error(err)
+		throw err
+	}
+}
+
 const getCashPosition = async () => {
 	try {
 		const securityIdCAD = await getCAD()
-		const cash = await Position.findOne({ security: securityIdCAD })
-		if (cash) return cash
-		else throw new Error('Could not retrieve cash position from database')
+		return await getPosition(securityIdCAD)
 	} catch (err) {
 		throw err
 	}
 }
 
-const updateCashPosition = async (cashPosition, total, orderType) => {
-	// subtract from cash if its a BUY, add to cash if its a SELL
+const updateCashPosition = async (cashPosition, total, type) => {
+	// subtract from cash if its a BUY, add to cash if its a SELL or DEPOSIT
 	cashPosition.quantity =
-		orderType === 'BUY' ? cashPosition.quantity - total : cashPosition.quantity + total
+		type === 'BUY' ? cashPosition.quantity - total : cashPosition.quantity + total
 	await cashPosition.save()
 }
 
@@ -82,6 +151,7 @@ module.exports = {
 	upsertPosition,
 	insertTransaction,
 	getCAD,
+	getPosition,
 	getCashPosition,
 	updateCashPosition,
 }
