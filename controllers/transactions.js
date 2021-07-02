@@ -11,7 +11,7 @@ transactionsRouter.get('/', async (req, res) => {
 		})
 		res.status(200).json(transactions)
 	} catch (err) {
-		const message = 'Could not retreive orders from database'
+		const message = 'Could not retrieve orders from database'
 		logger.error({
 			message: message,
 			error: err,
@@ -22,18 +22,17 @@ transactionsRouter.get('/', async (req, res) => {
 
 transactionsRouter.post('/deposit', async (req, res) => {
 	try {
+		const type = 'DEPOSIT'
 		const newTransaction = new Transaction({
-			type: 'DEPOSIT',
+			type: type,
 			date: new Date(),
-			amount: req.body.amount,
+			quantity: req.body.quantity,
 		})
-
-		await newTransaction.save()
 
 		// save CAD cash position
 		try {
 			const securityIdCAD = await getCAD()
-			upsertPosition(securityIdCAD, req.body.amount)
+			upsertPosition(securityIdCAD, req.body.quantity, type)
 		} catch (err) {
 			const message = 'Could not save new position to database'
 			logger.error({
@@ -43,6 +42,7 @@ transactionsRouter.post('/deposit', async (req, res) => {
 			res.status(400).json(message)
 		}
 
+		await newTransaction.save()
 		res.status(201).json(newTransaction)
 	} catch (err) {
 		const message = 'Could not save new transaction to database'
