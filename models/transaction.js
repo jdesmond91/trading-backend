@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const transactionSchema = new mongoose.Schema({
 	type: { type: String, require: true },
 	date: { type: Date, required: true },
-	amount: { type: Number, required: true },
+	quantity: { type: Number, required: true },
 	order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
 })
 
