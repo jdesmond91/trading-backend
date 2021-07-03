@@ -57,7 +57,7 @@ ordersRouter.post('/', async (req, res) => {
 		await newOrder.save()
 
 		try {
-			await upsertPosition(req.body.securityId, req.body.quantity, type)
+			await upsertPosition(req.body.securityId, req.body.quantity, type, total)
 			await insertTransaction(req.body.type, total, newOrder.id)
 		} catch (err) {
 			logger.error(err)
