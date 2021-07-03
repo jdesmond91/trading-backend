@@ -4,7 +4,7 @@ const Security = require('../models/security')
 const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 
-const upsertPosition = async (securityId, quantity, type) => {
+const upsertPosition = async (securityId, quantity, type, total) => {
 	const position = await Position.findOne({ security: securityId })
 	let newPosition
 
@@ -15,10 +15,12 @@ const upsertPosition = async (securityId, quantity, type) => {
 		// if there is an existing position, add the new quantity to the current quantity
 		// else create new position with the current quantity
 		if (position) {
+			const total = quantity + position.quantity
+
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: quantity + position.quantity },
+				{ quantity: total, totalValue: total },
 				{
 					new: true,
 				}
@@ -29,6 +31,7 @@ const upsertPosition = async (securityId, quantity, type) => {
 			newPosition = new Position({
 				security: securityId,
 				quantity: quantity,
+				totalValue: quantity,
 			})
 
 			await newPosition.save()
@@ -45,7 +48,7 @@ const upsertPosition = async (securityId, quantity, type) => {
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: position.quantity + quantity },
+				{ quantity: position.quantity + quantity, totalValue: position.totalValue + total },
 				{
 					new: true,
 				}
@@ -56,6 +59,7 @@ const upsertPosition = async (securityId, quantity, type) => {
 			newPosition = new Position({
 				security: securityId,
 				quantity: quantity,
+				totalValue: total,
 			})
 			await newPosition.save()
 			logger.info('Position successfully inserted', newPosition)
@@ -78,7 +82,7 @@ const upsertPosition = async (securityId, quantity, type) => {
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: position.quantity - quantity },
+				{ quantity: position.quantity - quantity, totalValue: position.totalValue - total },
 				{
 					new: true,
 				}
