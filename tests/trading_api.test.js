@@ -55,7 +55,7 @@ describe('Security Tests', () => {
 	})
 })
 
-describe('Position Tests', () => {
+describe('Transaction Tests', () => {
 	beforeAll(async () => {
 		const cashPosition = await getCashPosition()
 		if (cashPosition) {
@@ -92,9 +92,23 @@ describe('Position Tests', () => {
 	})
 })
 
+describe('Position Tests', () => {
+	let cashPosition
+
+	beforeAll(async () => {
+		cashPosition = await getCashPosition()
+	})
+
+	test('should retrieve cash position successfully', async () => {
+		await api
+			.get('/api/positions/cash')
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+	})
+})
+
 describe('Order Tests', () => {
 	let testSecurity
-	let position
 	let initialOrders
 	let initialPositions
 	let initialTransactions
