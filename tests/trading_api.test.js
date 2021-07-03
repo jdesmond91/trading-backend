@@ -126,7 +126,7 @@ describe('Order Tests', () => {
 		initialTransactions = await api.get('/api/transactions')
 	})
 
-	test('/POST buy test should create a new position', async () => {
+	test('/POST buy should create a new position', async () => {
 		await api
 			.post('/api/orders/')
 			.send({
@@ -167,6 +167,7 @@ describe('Order Tests', () => {
 
 		expect(cashPosition.quantity).toBe(initialCashPosition.quantity - total)
 		expect(securityPosition.quantity).toBe(initialSecurityPosition.quantity + testQuantity)
+		expect(securityPosition.totalValue).toBe(initialSecurityPosition.totalValue + total)
 	})
 
 	test('/POST sell should update security and cash positions', async () => {
@@ -189,6 +190,7 @@ describe('Order Tests', () => {
 
 		expect(cashPosition.quantity).toBe(initialCashPosition.quantity + total)
 		expect(securityPosition.quantity).toBe(initialSecurityPosition.quantity - testQuantity)
+		expect(securityPosition.totalValue).toBe(initialSecurityPosition.totalValue - total)
 	})
 
 	test('/POST selling more positions than you currently hold results in error', async () => {
