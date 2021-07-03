@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const mongoose = require('mongoose')
 const config = require('./utils/config')
 const securitiesRouter = require('./controllers/securities')
@@ -9,9 +10,8 @@ const logger = require('./utils/logger')
 
 const app = express()
 
-// allow for parsing of incoming JSON objects during POST requests
-// attaches request JSON data to body property of request objects
-app.use(express.json())
+app.use(cors())
+app.use(express.json()) // allow for parsing of incoming JSON objects during POST requests - attaches request JSON data to body property of request objects
 app.use('/api/securities', securitiesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/transactions', transactionsRouter)
