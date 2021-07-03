@@ -7,7 +7,7 @@ securitiesRouter.get('/', async (req, res) => {
 		const securities = await Security.find({})
 		res.status(200).json(securities)
 	} catch (err) {
-		const message = 'Could not retreive securities from database'
+		const message = 'Could not retrieve securities from database'
 		logger.error({
 			message: message,
 			error: err,
