@@ -105,6 +105,16 @@ describe('Position Tests', () => {
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 	})
+
+	test('should retrieve net worth', async () => {
+		const res = await api
+			.get('/api/positions/networth')
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+
+		const netWorth = res.body
+		expect(netWorth).toBe(2000)
+	})
 })
 
 describe('Order Tests', () => {

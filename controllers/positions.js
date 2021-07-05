@@ -31,4 +31,22 @@ positionsRouter.get('/cash', async (req, res) => {
 	}
 })
 
+positionsRouter.get('/networth', async (req, res) => {
+	try {
+		const positions = await Position.find({})
+		const netWorth = positions.reduce(
+			(accumulator, currentValue) => accumulator + currentValue.totalValue,
+			0
+		)
+		res.status(200).json(netWorth)
+	} catch (err) {
+		const message = 'Could not retrieve net worth from database'
+		logger.error({
+			message: message,
+			error: err,
+		})
+		res.status(400).json(message)
+	}
+})
+
 module.exports = positionsRouter
