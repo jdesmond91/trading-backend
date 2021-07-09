@@ -5,6 +5,7 @@ const {
 	insertTransaction,
 	getCashPosition,
 	updateCashPosition,
+	getSecurityPrice,
 } = require('./helpers')
 const logger = require('../utils/logger')
 
@@ -25,14 +26,17 @@ ordersRouter.get('/', async (req, res) => {
 ordersRouter.post('/', async (req, res) => {
 	try {
 		let cashPosition
-		const total = req.body.price * req.body.quantity
+
+		const securityPrice = await getSecurityPrice(req.body.securityId)
+
+		const total = securityPrice * req.body.quantity
 		const type = req.body.type
 
 		const newOrder = new Order({
 			type: req.body.type,
 			submitDate: new Date(),
 			security: req.body.securityId,
-			price: req.body.price,
+			price: securityPrice,
 			quantity: req.body.quantity,
 		})
 

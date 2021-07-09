@@ -7,7 +7,7 @@ const Order = require('../models/order')
 const Position = require('../models/position')
 const Transaction = require('../models/transaction')
 const config = require('../utils/config')
-const { getCashPosition, getPosition } = require('../controllers/helpers')
+const { getCashPosition, getPosition, getSecurityPrice } = require('../controllers/helpers')
 
 beforeAll(async () => {
 	await mongoose.connect(config.MONGODB_URI, {
@@ -27,6 +27,7 @@ describe('Security Tests', () => {
 			name: 'Securities Test',
 			ticker: 'ST',
 			price: 100,
+			type: 'EQUITY',
 		}
 
 		await api
@@ -123,13 +124,16 @@ describe('Order Tests', () => {
 	let initialPositions
 	let initialTransactions
 
-	let testPrice = 100
+	let testPrice
 	let testQuantity = 5
-	let total = testPrice * testQuantity
+	let total
 
 	beforeAll(async () => {
 		testSecurity = await Security.findOne({ ticker: 'RY' })
 		await Position.findOneAndDelete({ security: testSecurity._id })
+
+		testPrice = await getSecurityPrice(testSecurity._id)
+		total = testPrice * testQuantity
 
 		initialOrders = await api.get('/api/orders')
 		initialPositions = await api.get('/api/positions')
@@ -142,7 +146,6 @@ describe('Order Tests', () => {
 			.send({
 				type: 'BUY',
 				securityId: testSecurity._id,
-				price: testPrice,
 				quantity: testQuantity,
 			})
 			.expect(201)
@@ -166,7 +169,6 @@ describe('Order Tests', () => {
 			.send({
 				type: 'BUY',
 				securityId: testSecurity._id,
-				price: testPrice,
 				quantity: testQuantity,
 			})
 			.expect(201)
@@ -189,7 +191,6 @@ describe('Order Tests', () => {
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
-				price: testPrice,
 				quantity: testQuantity,
 			})
 			.expect(201)
@@ -211,7 +212,6 @@ describe('Order Tests', () => {
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
-				price: testPrice,
 				quantity: testQuantity,
 			})
 			.expect(400)
@@ -229,7 +229,6 @@ describe('Order Tests', () => {
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
-				price: testPrice,
 				quantity: testQuantity,
 			})
 			.expect(201)

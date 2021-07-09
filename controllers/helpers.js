@@ -4,6 +4,15 @@ const Security = require('../models/security')
 const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 
+const getSecurityPrice = async (securityId) => {
+	try {
+		const security = await Security.findById(securityId)
+		return security.price
+	} catch (err) {
+		throw new Error('Could not retrieve security from database')
+	}
+}
+
 const upsertPosition = async (securityId, quantity, type, total) => {
 	const position = await Position.findOne({ security: securityId })
 	let newPosition
@@ -152,6 +161,7 @@ const updateCashPosition = async (cashPosition, total, type) => {
 }
 
 module.exports = {
+	getSecurityPrice,
 	upsertPosition,
 	insertTransaction,
 	getCAD,
