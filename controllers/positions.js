@@ -5,8 +5,9 @@ const { getCashPosition } = require('./helpers')
 
 positionsRouter.get('/', async (req, res) => {
 	try {
-		const positions = await Position.find({})
-		res.status(200).json(positions)
+		const positions = await Position.find({}).populate('security')
+		const securityPositions = positions.filter((position) => position.security.type !== 'CASH')
+		res.status(200).json(securityPositions)
 	} catch (err) {
 		const message = 'Could not retrieve positions from database'
 		logger.error({
