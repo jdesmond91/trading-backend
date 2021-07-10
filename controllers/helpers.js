@@ -155,8 +155,13 @@ const getCashPosition = async () => {
 
 const updateCashPosition = async (cashPosition, total, type) => {
 	// subtract from cash if its a BUY, add to cash if its a SELL or DEPOSIT
-	cashPosition.quantity =
-		type === 'BUY' ? cashPosition.quantity - total : cashPosition.quantity + total
+	if (type === 'BUY') {
+		cashPosition.quantity = cashPosition.quantity - total
+		cashPosition.totalValue = cashPosition.totalValue - total
+	} else {
+		cashPosition.quantity = cashPosition.quantity + total
+		cashPosition.totalValue = cashPosition.totalValue + total
+	}
 	await cashPosition.save()
 }
 
