@@ -14,11 +14,11 @@ const app = express()
 app.use(cors())
 app.use(express.json()) // allow for parsing of incoming JSON objects during POST requests - attaches request JSON data to body property of request objects
 app.use(middleware.requestLogger)
-app.use(middleware.unknownEndpoint)
 app.use('/api/securities', securitiesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/transactions', transactionsRouter)
 app.use('/api/positions', positionsRouter)
+app.use(middleware.unknownEndpoint)
 
 mongoose
 	.connect(config.MONGODB_URI, {
