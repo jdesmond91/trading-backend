@@ -7,11 +7,14 @@ const ordersRouter = require('./controllers/orders')
 const transactionsRouter = require('./controllers/transactions')
 const positionsRouter = require('./controllers/positions')
 const logger = require('./utils/logger')
+const middleware = require('./utils/middleware')
 
 const app = express()
 
 app.use(cors())
 app.use(express.json()) // allow for parsing of incoming JSON objects during POST requests - attaches request JSON data to body property of request objects
+app.use(middleware.requestLogger)
+app.use(middleware.unknownEndpoint)
 app.use('/api/securities', securitiesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/transactions', transactionsRouter)
