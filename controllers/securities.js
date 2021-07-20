@@ -16,6 +16,20 @@ securitiesRouter.get('/', async (req, res) => {
 	}
 })
 
+securitiesRouter.get('/equity', async (req, res) => {
+	try {
+		const securities = await Security.find({ type: 'EQUITY' }).sort({ name: 'asc' })
+		res.status(200).json(securities)
+	} catch (err) {
+		const message = 'Could not retrieve securities from database'
+		logger.error({
+			message: message,
+			error: err,
+		})
+		res.status(400).json(message)
+	}
+})
+
 securitiesRouter.post('/', async (req, res) => {
 	const newSecurity = new Security({
 		name: req.body.name,
