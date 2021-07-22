@@ -29,6 +29,10 @@ ordersRouter.post('/', async (req, res) => {
 
 		const securityPrice = await getSecurityPrice(req.body.securityId)
 
+		if (req.body.quantity <= 0) {
+			throw new Error('Quantity must be greater than zero')
+		}
+
 		const total = securityPrice * req.body.quantity
 		const type = req.body.type
 
