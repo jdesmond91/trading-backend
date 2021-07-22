@@ -84,7 +84,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			logger.info('Position successfully deleted')
 		} else if (position.quantity < quantity) {
 			logger.error('Held position quantity', position.quantity)
-			logger.error('Sell osition quantity', quantity)
+			logger.error('Sell position quantity', quantity)
 			throw new Error('Cannot sell more positions than held')
 		} else {
 			// if only selling a subset of positions, then update the position quantity
