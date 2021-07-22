@@ -240,6 +240,20 @@ describe('Order Tests', () => {
 		expect(cashPosition.quantity).toBe(initialCashPosition.quantity + total)
 		expect(securityPosition).toBe(null)
 	})
+
+	test('/POST orders with quantity of 0 or less should result in an error', async () => {
+		testQuantity = 0
+
+		await api
+			.post('/api/orders/')
+			.send({
+				type: 'SELL',
+				securityId: testSecurity._id,
+				quantity: testQuantity,
+			})
+			.expect(400)
+			.expect('Content-Type', /application\/json/)
+	})
 })
 
 afterAll(async () => {
