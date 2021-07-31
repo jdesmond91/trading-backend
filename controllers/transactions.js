@@ -5,10 +5,12 @@ const logger = require('../utils/logger')
 
 transactionsRouter.get('/', async (req, res) => {
 	try {
-		const transactions = await Transaction.find({}).populate({
-			path: 'order',
-			populate: { path: 'security' },
-		})
+		const transactions = await Transaction.find({})
+			.populate({
+				path: 'order',
+				populate: { path: 'security' },
+			})
+			.sort({ date: 'desc' })
 		res.status(200).json(transactions)
 	} catch (err) {
 		const message = 'Could not retrieve orders from database'
