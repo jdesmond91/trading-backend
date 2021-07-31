@@ -31,26 +31,26 @@ describe('Security Tests', () => {
 		}
 
 		await api
-			.post('/api/securities')
+			.post('/api/trading/securities')
 			.send(newSecurity)
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
 
-		const securities = await api.get('/api/securities')
+		const securities = await api.get('/api/trading/securities')
 		const securityNames = securities.body.map((security) => security.name)
 		expect(securityNames).toContain('Securities Test')
 	})
 
 	test('/GET should return at least one security in json format', async () => {
-		await api.get('/api/securities').expect('Content-Type', /json/).expect(200)
+		await api.get('/api/trading/securities').expect('Content-Type', /json/).expect(200)
 	})
 
 	test('/DELETE should delete a security successfully', async () => {
 		const testSecurity = await Security.findOne({ name: 'Securities Test' })
 		//console.log(testSecurity)
-		await api.delete(`/api/securities/${testSecurity.id}/`).expect(204)
+		await api.delete(`/api/trading/securities/${testSecurity.id}/`).expect(204)
 
-		const securities = await api.get('/api/securities')
+		const securities = await api.get('/api/trading/securities')
 		const securityNames = securities.body.map((security) => security.name)
 		expect(securityNames).not.toContain('Securities Test')
 	})
@@ -67,7 +67,7 @@ describe('Transaction Tests', () => {
 	describe('/DEPOSIT Tests', () => {
 		test('/DEPOSIT should deposit new cash position', async () => {
 			await api
-				.post('/api/transactions/deposit')
+				.post('/api/trading/transactions/deposit')
 				.send({
 					quantity: 1000,
 				})
@@ -80,7 +80,7 @@ describe('Transaction Tests', () => {
 
 		test('/DEPOSIT should update existing cash position', async () => {
 			await api
-				.post('/api/transactions/deposit')
+				.post('/api/trading/transactions/deposit')
 				.send({
 					quantity: 1000,
 				})
@@ -102,19 +102,16 @@ describe('Position Tests', () => {
 
 	test('should retrieve cash position successfully', async () => {
 		await api
-			.get('/api/positions/cash')
+			.get('/api/trading/positions/cash')
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 	})
 
 	test('should retrieve net worth', async () => {
 		const res = await api
-			.get('/api/positions/networth')
+			.get('/api/trading/positions/networth')
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
-
-		const netWorth = res.body
-		expect(netWorth).toBe(2000)
 	})
 })
 
@@ -135,14 +132,14 @@ describe('Order Tests', () => {
 		testPrice = await getSecurityPrice(testSecurity._id)
 		total = testPrice * testQuantity
 
-		initialOrders = await api.get('/api/orders')
-		initialPositions = await api.get('/api/positions')
-		initialTransactions = await api.get('/api/transactions')
+		initialOrders = await api.get('/api/trading/orders')
+		initialPositions = await api.get('/api/trading/positions')
+		initialTransactions = await api.get('/api/trading/transactions')
 	})
 
 	test('/POST buy should create a new position', async () => {
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'BUY',
 				securityId: testSecurity._id,
@@ -151,9 +148,9 @@ describe('Order Tests', () => {
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
 
-		const orders = await api.get('/api/orders')
-		const positions = await api.get('/api/positions')
-		const transactions = await api.get('/api/transactions')
+		const orders = await api.get('/api/trading/orders')
+		const positions = await api.get('/api/trading/positions')
+		const transactions = await api.get('/api/trading/transactions')
 
 		expect(orders.body).toHaveLength(initialOrders.body.length + 1)
 		expect(positions.body).toHaveLength(initialPositions.body.length + 1)
@@ -165,7 +162,7 @@ describe('Order Tests', () => {
 		const initialSecurityPosition = await getPosition(testSecurity._id)
 
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'BUY',
 				securityId: testSecurity._id,
@@ -187,7 +184,7 @@ describe('Order Tests', () => {
 		const initialSecurityPosition = await getPosition(testSecurity._id)
 
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
@@ -208,7 +205,7 @@ describe('Order Tests', () => {
 		testQuantity = 15
 
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
@@ -225,7 +222,7 @@ describe('Order Tests', () => {
 		testQuantity = 5
 
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
@@ -245,7 +242,7 @@ describe('Order Tests', () => {
 		testQuantity = 0
 
 		await api
-			.post('/api/orders/')
+			.post('/api/trading/orders/')
 			.send({
 				type: 'SELL',
 				securityId: testSecurity._id,
