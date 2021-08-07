@@ -3,13 +3,24 @@ const Order = require('../models/order')
 const Security = require('../models/security')
 const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
+const yahooFinance = require('yahoo-finance2').default
 
-const getSecurityPrice = async (securityId) => {
+const getSecurity = async (id) => {
 	try {
-		const security = await Security.findById(securityId)
-		return security.price
+		const security = await Security.findById(id)
+		if (security) return security
+		else throw new Error('Cannot retrieve security from database')
 	} catch (err) {
-		throw new Error('Could not retrieve security from database')
+		throw err
+	}
+}
+
+const getSecurityPrice = async (ticker) => {
+	try {
+		const quote = await yahooFinance.quote(ticker)
+		return quote.regularMarketPrice
+	} catch (err) {
+		throw err
 	}
 }
 
@@ -105,14 +116,25 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 	}
 }
 
-const insertTransaction = async (type, quantity, orderId) => {
+const insertTransaction = async (type, quantity, price, orderId) => {
 	try {
-		const newTransaction = new Transaction({
-			type: type,
-			date: new Date(),
-			quantity: quantity,
-			order: orderId,
-		})
+		let newTransaction
+		if (type === 'DEPOSIT') {
+			newTransaction = new Transaction({
+				type: type,
+				date: new Date(),
+				quantity: quantity,
+				order: orderId,
+			})
+		} else {
+			newTransaction = new Transaction({
+				type: type,
+				date: new Date(),
+				quantity: quantity,
+				price: price,
+				order: orderId,
+			})
+		}
 
 		await newTransaction.save()
 	} catch (err) {
@@ -166,6 +188,7 @@ const updateCashPosition = async (cashPosition, total, type) => {
 }
 
 module.exports = {
+	getSecurity,
 	getSecurityPrice,
 	upsertPosition,
 	insertTransaction,

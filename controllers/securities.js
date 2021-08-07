@@ -1,6 +1,7 @@
 const Security = require('../models/security')
 const securitiesRouter = require('express').Router()
 const logger = require('../utils/logger')
+const { getSecurityPrice } = require('./helpers')
 
 securitiesRouter.get('/', async (req, res) => {
 	try {
@@ -8,6 +9,20 @@ securitiesRouter.get('/', async (req, res) => {
 		res.status(200).json(securities)
 	} catch (err) {
 		const message = 'Could not retrieve securities from database'
+		logger.error({
+			message: message,
+			error: err,
+		})
+		res.status(400).json(message)
+	}
+})
+
+securitiesRouter.get('/price/:ticker', async (req, res) => {
+	try {
+		const price = await getSecurityPrice(req.params.ticker)
+		res.status(200).json(price)
+	} catch (err) {
+		const message = 'Could not retrieve security price'
 		logger.error({
 			message: message,
 			error: err,

@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const securitySchema = new mongoose.Schema({
 	name: { type: String, required: true, maxlength: 100 },
 	ticker: { type: String, required: true, maxlength: 5 },
-	price: { type: Number, required: true },
 	type: { type: String, require: true },
 })
 

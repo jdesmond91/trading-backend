@@ -1,11 +1,12 @@
 const Order = require('../models/order')
 const ordersRouter = require('express').Router()
 const {
+	getSecurity,
+	getSecurityPrice,
 	upsertPosition,
 	insertTransaction,
 	getCashPosition,
 	updateCashPosition,
-	getSecurityPrice,
 } = require('./helpers')
 const logger = require('../utils/logger')
 
@@ -27,13 +28,15 @@ ordersRouter.post('/', async (req, res) => {
 	try {
 		let cashPosition
 
-		const securityPrice = await getSecurityPrice(req.body.securityId)
+		const security = await getSecurity(req.body.securityId)
+		const securityPrice = await getSecurityPrice(security.ticker)
 
 		if (req.body.quantity <= 0) {
 			throw new Error('Quantity must be greater than zero')
 		}
 
-		const total = securityPrice * req.body.quantity
+		const quantity = req.body.quantity
+		const total = securityPrice * quantity
 		const type = req.body.type
 
 		const newOrder = new Order({
@@ -41,7 +44,7 @@ ordersRouter.post('/', async (req, res) => {
 			submitDate: new Date(),
 			security: req.body.securityId,
 			price: securityPrice,
-			quantity: req.body.quantity,
+			quantity: quantity,
 		})
 
 		cashPosition = await getCashPosition()
@@ -66,7 +69,7 @@ ordersRouter.post('/', async (req, res) => {
 
 		try {
 			await upsertPosition(req.body.securityId, req.body.quantity, type, total)
-			await insertTransaction(req.body.type, total, newOrder.id)
+			await insertTransaction(req.body.type, quantity, securityPrice, newOrder.id)
 		} catch (err) {
 			logger.error(err)
 			throw new Error('Could not save position or transaction to database')

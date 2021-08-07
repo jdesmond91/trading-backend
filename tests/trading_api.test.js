@@ -1,12 +1,12 @@
+const config = require('../utils/config')
+const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
-const mongoose = require('mongoose')
 const Security = require('../models/security')
 const Order = require('../models/order')
 const Position = require('../models/position')
 const Transaction = require('../models/transaction')
-const config = require('../utils/config')
 const { getCashPosition, getPosition, getSecurityPrice } = require('../controllers/helpers')
 
 beforeAll(async () => {
@@ -26,7 +26,6 @@ describe('Security Tests', () => {
 		const newSecurity = {
 			name: 'Securities Test',
 			ticker: 'ST',
-			price: 100,
 			type: 'EQUITY',
 		}
 
@@ -47,7 +46,6 @@ describe('Security Tests', () => {
 
 	test('/DELETE should delete a security successfully', async () => {
 		const testSecurity = await Security.findOne({ name: 'Securities Test' })
-		//console.log(testSecurity)
 		await api.delete(`/api/trading/securities/${testSecurity.id}/`).expect(204)
 
 		const securities = await api.get('/api/trading/securities')
@@ -126,10 +124,10 @@ describe('Order Tests', () => {
 	let total
 
 	beforeAll(async () => {
-		testSecurity = await Security.findOne({ ticker: 'RY' })
+		testSecurity = await Security.findOne({ name: 'Royal Bank' })
 		await Position.findOneAndDelete({ security: testSecurity._id })
 
-		testPrice = await getSecurityPrice(testSecurity._id)
+		testPrice = await getSecurityPrice(testSecurity.ticker)
 		total = testPrice * testQuantity
 
 		initialOrders = await api.get('/api/trading/orders')
