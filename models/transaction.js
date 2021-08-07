@@ -4,6 +4,7 @@ const transactionSchema = new mongoose.Schema({
 	type: { type: String, require: true },
 	date: { type: Date, required: true },
 	quantity: { type: Number, required: true },
+	price: { type: Number },
 	order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
 })
 
