@@ -34,7 +34,20 @@ securitiesRouter.get('/price/:ticker', async (req, res) => {
 securitiesRouter.get('/equity', async (req, res) => {
 	try {
 		const securities = await Security.find({ type: 'EQUITY' }).sort({ name: 'asc' })
-		res.status(200).json(securities)
+
+		// use promise.all to return the array once all the prices have been retrieved from yahoo finance api
+		const securitiesWithPrice = await Promise.all(
+			securities.map(async (security) => {
+				try {
+					const securityWithPrice = security.toObject()
+					return { ...securityWithPrice, price: await getSecurityPrice(securityWithPrice.ticker) }
+				} catch (err) {
+					throw err
+				}
+			})
+		)
+
+		res.status(200).json(securitiesWithPrice)
 	} catch (err) {
 		const message = 'Could not retrieve securities from database'
 		logger.error({
