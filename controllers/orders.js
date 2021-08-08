@@ -35,14 +35,15 @@ ordersRouter.post('/', async (req, res) => {
 			throw new Error('Quantity must be greater than zero')
 		}
 
+		const id = security._id
 		const quantity = req.body.quantity
 		const total = securityPrice * quantity
 		const type = req.body.type
 
 		const newOrder = new Order({
-			type: req.body.type,
+			type: type,
 			submitDate: new Date(),
-			security: req.body.securityId,
+			security: id,
 			price: securityPrice,
 			quantity: quantity,
 		})
@@ -68,8 +69,8 @@ ordersRouter.post('/', async (req, res) => {
 		await newOrder.save()
 
 		try {
-			await upsertPosition(req.body.securityId, req.body.quantity, type, total)
-			await insertTransaction(req.body.type, quantity, securityPrice, newOrder.id)
+			await upsertPosition(id, quantity, type, total)
+			await insertTransaction(type, quantity, securityPrice, newOrder.id)
 		} catch (err) {
 			logger.error(err)
 			throw new Error('Could not save position or transaction to database')
