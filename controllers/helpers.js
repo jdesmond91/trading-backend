@@ -5,6 +5,11 @@ const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 const yahooFinance = require('yahoo-finance2').default
 
+const round = (num) => {
+	var m = Number((Math.abs(num) * 100).toPrecision(15))
+	return (Math.round(m) / 100) * Math.sign(num)
+}
+
 const getSecurity = async (id) => {
 	try {
 		const security = await Security.findById(id)
@@ -18,7 +23,7 @@ const getSecurity = async (id) => {
 const getSecurityPrice = async (ticker) => {
 	try {
 		const quote = await yahooFinance.quote(ticker)
-		return quote.regularMarketPrice
+		return round(quote.regularMarketPrice)
 	} catch (err) {
 		throw err
 	}
@@ -40,7 +45,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: total, totalValue: total },
+				{ quantity: total, bookValue: total },
 				{
 					new: true,
 				}
@@ -51,7 +56,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			newPosition = new Position({
 				security: securityId,
 				quantity: quantity,
-				totalValue: quantity,
+				bookValue: quantity,
 			})
 
 			await newPosition.save()
@@ -68,7 +73,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: position.quantity + quantity, totalValue: position.totalValue + total },
+				{ quantity: position.quantity + quantity, bookValue: position.bookValue + total },
 				{
 					new: true,
 				}
@@ -79,7 +84,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			newPosition = new Position({
 				security: securityId,
 				quantity: quantity,
-				totalValue: total,
+				bookValue: total,
 			})
 			await newPosition.save()
 			logger.info('Position successfully inserted', newPosition)
@@ -102,7 +107,7 @@ const upsertPosition = async (securityId, quantity, type, total) => {
 			// new set to true will return the updated position rather than the original position
 			newPosition = await Position.findByIdAndUpdate(
 				position.id,
-				{ quantity: position.quantity - quantity, totalValue: position.totalValue - total },
+				{ quantity: position.quantity - quantity, bookValue: position.bookValue - total },
 				{
 					new: true,
 				}
@@ -179,10 +184,10 @@ const updateCashPosition = async (cashPosition, total, type) => {
 	// subtract from cash if its a BUY, add to cash if its a SELL or DEPOSIT
 	if (type === 'BUY') {
 		cashPosition.quantity = cashPosition.quantity - total
-		cashPosition.totalValue = cashPosition.totalValue - total
+		cashPosition.bookValue = cashPosition.bookValue - total
 	} else {
 		cashPosition.quantity = cashPosition.quantity + total
-		cashPosition.totalValue = cashPosition.totalValue + total
+		cashPosition.bookValue = cashPosition.bookValue + total
 	}
 	await cashPosition.save()
 }
