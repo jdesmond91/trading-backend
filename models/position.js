@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const positionSchema = new mongoose.Schema({
 	security: { type: mongoose.Schema.Types.ObjectId, ref: 'Security', required: true },
 	quantity: { type: Number, required: true },
-	totalValue: { type: Number, required: true },
+	bookValue: { type: Number, required: true },
 })
 
 // when toJSON is called, delete mongoose id and version and return id as string
