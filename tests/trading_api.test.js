@@ -174,7 +174,7 @@ describe('Order Tests', () => {
 
 		expect(cashPosition.quantity).toBe(initialCashPosition.quantity - total)
 		expect(securityPosition.quantity).toBe(initialSecurityPosition.quantity + testQuantity)
-		expect(securityPosition.totalValue).toBe(initialSecurityPosition.totalValue + total)
+		expect(securityPosition.bookValue).toBe(initialSecurityPosition.bookValue + total)
 	})
 
 	test('/POST sell should update security and cash positions', async () => {
@@ -196,7 +196,7 @@ describe('Order Tests', () => {
 
 		expect(cashPosition.quantity).toBe(initialCashPosition.quantity + total)
 		expect(securityPosition.quantity).toBe(initialSecurityPosition.quantity - testQuantity)
-		expect(securityPosition.totalValue).toBe(initialSecurityPosition.totalValue - total)
+		expect(securityPosition.bookValue).toBe(initialSecurityPosition.bookValue - total)
 	})
 
 	test('/POST selling more positions than you currently hold results in error', async () => {
