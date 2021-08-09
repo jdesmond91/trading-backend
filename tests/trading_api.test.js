@@ -1,5 +1,6 @@
 const config = require('../utils/config')
 const mongoose = require('mongoose')
+const asyncRedisClient = require('../redis')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
@@ -253,4 +254,5 @@ describe('Order Tests', () => {
 
 afterAll(async () => {
 	await mongoose.connection.close()
+	await asyncRedisClient.quit()
 })
