@@ -7,7 +7,7 @@ const yahooFinance = require('yahoo-finance2').default
 const asyncRedisClient = require('../redis')
 
 const round = (num) => {
-	return (Math.round((num + Number.EPSILON) * 100) / 100).toFixed(2)
+	return parseFloat((Math.round((num + Number.EPSILON) * 100) / 100).toFixed(2))
 }
 
 const getSecurity = async (id) => {
