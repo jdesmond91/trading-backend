@@ -30,7 +30,7 @@ const getSecurityPrice = async (ticker) => {
 
 		// if there isn't anything in the cache, retrieve price from yahoo finance
 		if (!securityPrice) {
-			logger.info('No cache price found, retrieving from yahoo finance')
+			logger.info('No cached price found, retrieving from yahoo finance')
 			const quote = await yahooFinance.quote(ticker)
 			securityPrice = round(quote.regularMarketPrice)
 			await asyncRedisClient.setex(`prices?ticker=${ticker}`, 3600, JSON.stringify(securityPrice))
@@ -206,6 +206,7 @@ const updateCashPosition = async (cashPosition, total, type) => {
 }
 
 module.exports = {
+	round,
 	getSecurity,
 	getSecurityPrice,
 	upsertPosition,

@@ -1,7 +1,7 @@
 const Position = require('../models/position')
 const positionsRouter = require('express').Router()
 const logger = require('../utils/logger')
-const { getCashPosition, getSecurityPrice } = require('./helpers')
+const { round, getCashPosition, getSecurityPrice } = require('./helpers')
 
 positionsRouter.get('/', async (req, res) => {
 	try {
@@ -74,12 +74,10 @@ positionsRouter.get('/networth', async (req, res) => {
 				// 4. loop through the list, and for each security, get the current price
 				// 5. as you are looping, multiply the current price by the held quantity to get marketValue
 				// 6. keep adding each marketValue to running totals for bookValue and marketValue
-
 				for (const position of securityPositions) {
 					const securityPrice = await getSecurityPrice(position.security.ticker)
-					const positionMarketValue = position.quantity * securityPrice
+					const positionMarketValue = round(position.quantity * securityPrice)
 					netWorth.marketValue += positionMarketValue
-
 					netWorth.bookValue += position.bookValue
 				}
 			}
