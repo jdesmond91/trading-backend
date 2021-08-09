@@ -4,6 +4,7 @@ const Security = require('../models/security')
 const Transaction = require('../models/transaction')
 const logger = require('../utils/logger')
 const yahooFinance = require('yahoo-finance2').default
+const asyncRedisClient = require('../redis')
 
 const round = (num) => {
 	var m = Number((Math.abs(num) * 100).toPrecision(15))
@@ -22,8 +23,20 @@ const getSecurity = async (id) => {
 
 const getSecurityPrice = async (ticker) => {
 	try {
-		const quote = await yahooFinance.quote(ticker)
-		return round(quote.regularMarketPrice)
+		let securityPrice
+
+		// attempt to retrive from redis cache
+		securityPrice = await asyncRedisClient.get(`prices?ticker=${ticker}`)
+
+		// if there isn't anything in the cache, retrieve price from yahoo finance
+		if (!securityPrice) {
+			logger.info('No cache price found, retrieving from yahoo finance')
+			const quote = await yahooFinance.quote(ticker)
+			securityPrice = round(quote.regularMarketPrice)
+			await asyncRedisClient.setex(`prices?ticker=${ticker}`, 3600, JSON.stringify(securityPrice))
+		}
+
+		return securityPrice
 	} catch (err) {
 		throw err
 	}
