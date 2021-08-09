@@ -76,12 +76,17 @@ positionsRouter.get('/networth', async (req, res) => {
 				// 6. keep adding each marketValue to running totals for bookValue and marketValue
 				for (const position of securityPositions) {
 					const securityPrice = await getSecurityPrice(position.security.ticker)
-					const positionMarketValue = round(position.quantity * securityPrice)
+					const positionMarketValue = position.quantity * securityPrice
 					netWorth.marketValue += positionMarketValue
 					netWorth.bookValue += position.bookValue
 				}
 			}
 		}
+
+		// 7. round the values after all calculations completed
+		netWorth.bookValue = round(netWorth.bookValue)
+		netWorth.marketValue = round(netWorth.marketValue)
+
 		res.status(200).json(netWorth)
 	} catch (err) {
 		const message = 'Could not retrieve net worth from database'
