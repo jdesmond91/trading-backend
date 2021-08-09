@@ -53,7 +53,7 @@ positionsRouter.get('/cash', async (req, res) => {
 positionsRouter.get('/networth', async (req, res) => {
 	try {
 		const positions = await Position.find({}).populate('security')
-		let netWorth = 0
+		let netWorth = { bookValue: 0, marketValue: 0 }
 
 		if (positions.length > 0) {
 			// 1. get cash position book value
@@ -61,8 +61,11 @@ positionsRouter.get('/networth', async (req, res) => {
 				(position) => position.security.name === 'Canadian Dollar'
 			)
 
-			// 2. if exists add the cash position book value to running total
-			if (cashPosition) netWorth += cashPosition.bookValue
+			// 2. if exists add the cash position book value to running totals for bookValue and marketValue
+			if (cashPosition) {
+				netWorth.bookValue += cashPosition.bookValue
+				netWorth.marketValue += cashPosition.bookValue
+			}
 
 			// 3. get a list of security positions
 			const securityPositions = positions.filter((position) => position.security.type === 'EQUITY')
@@ -70,12 +73,14 @@ positionsRouter.get('/networth', async (req, res) => {
 			if (securityPositions.length > 0) {
 				// 4. loop through the list, and for each security, get the current price
 				// 5. as you are looping, multiply the current price by the held quantity to get marketValue
-				// 6. keep adding each marketValue to running total
+				// 6. keep adding each marketValue to running totals for bookValue and marketValue
 
 				for (const position of securityPositions) {
 					const securityPrice = await getSecurityPrice(position.security.ticker)
-					const marketValue = position.quantity * securityPrice
-					netWorth += marketValue
+					const positionMarketValue = position.quantity * securityPrice
+					netWorth.marketValue += positionMarketValue
+
+					netWorth.bookValue += position.bookValue
 				}
 			}
 		}
