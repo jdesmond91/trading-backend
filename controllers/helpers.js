@@ -204,6 +204,41 @@ const updateCashPosition = async (cashPosition, total, type) => {
 	await cashPosition.save()
 }
 
+const getPositions = async () => {
+	try {
+		return await Position.find({}).populate('security')
+	} catch (err) {
+		throw err
+	}
+}
+
+const getSecurityPositions = (positions) => {
+	let securityPositions = []
+	if (positions.length > 0) {
+		securityPositions = positions.filter((position) => position.security.type === 'EQUITY')
+	}
+	return securityPositions
+}
+
+const getPositionsWithMarketValue = async (positions) => {
+	let positionsWithMarketValue = []
+	if (positions.length > 0) {
+		positionsWithMarketValue = await Promise.all(
+			positions.map(async (position) => {
+				try {
+					const positionWithMarketValue = position.toObject()
+					const securityPrice = await getSecurityPrice(positionWithMarketValue.security.ticker)
+					const marketValue = round(position.quantity * securityPrice)
+					return { ...positionWithMarketValue, marketValue: marketValue }
+				} catch (err) {
+					throw err
+				}
+			})
+		)
+	}
+	return positionsWithMarketValue
+}
+
 module.exports = {
 	round,
 	getSecurity,
@@ -213,5 +248,8 @@ module.exports = {
 	getCAD,
 	getPosition,
 	getCashPosition,
+	getPositions,
+	getSecurityPositions,
+	getPositionsWithMarketValue,
 	updateCashPosition,
 }
