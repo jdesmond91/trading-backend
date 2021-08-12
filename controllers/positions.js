@@ -1,7 +1,14 @@
 const Position = require('../models/position')
 const positionsRouter = require('express').Router()
 const logger = require('../utils/logger')
-const { round, getCashPosition, getSecurityPrice } = require('./helpers')
+const {
+	round,
+	getCashPosition,
+	getSecurityPrice,
+	getPositions,
+	getSecurityPositions,
+	getPositionsWithMarketValue,
+} = require('./helpers')
 
 positionsRouter.get('/', async (req, res) => {
 	try {
@@ -19,12 +26,10 @@ positionsRouter.get('/', async (req, res) => {
 
 positionsRouter.get('/equity', async (req, res) => {
 	try {
-		const positions = await Position.find({}).populate('security')
-		let securityPositions = []
-		if (positions.length > 0) {
-			securityPositions = positions.filter((position) => position.security.type === 'EQUITY')
-		}
-		res.status(200).json(securityPositions)
+		const positions = await getPositions()
+		const securityPositions = await getSecurityPositions(positions)
+		const securityPositionsWithMarketValue = await getPositionsWithMarketValue(securityPositions)
+		res.status(200).json(securityPositionsWithMarketValue)
 	} catch (err) {
 		const message = 'Could not retrieve positions from database'
 		logger.error({
