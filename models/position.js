@@ -15,4 +15,13 @@ positionSchema.set('toJSON', {
 	},
 })
 
+// when toObject is called, delete mongoose id and version and return id as string
+positionSchema.set('toObject', {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString()
+		delete returnedObject._id
+		delete returnedObject.__v
+	},
+})
+
 module.exports = mongoose.model('Position', positionSchema)
