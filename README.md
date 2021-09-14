@@ -51,8 +51,8 @@ GET http://localhost:3001/api/trading/securities
 ```
 
 POST http://localhost:3001/api/trading/securities
-Content-Type: application/json
 
+Request Body:
 ```
 {
     "name": "Royal Bank",
@@ -60,6 +60,7 @@ Content-Type: application/json
 }
 ```
 
+Response:
 ```
 {
   "name": "Bank of Nova Scotia",
@@ -69,16 +70,17 @@ Content-Type: application/json
 ```
 
 POST http://localhost:3001/api/trading/orders
-Content-Type: application/json
 
+Request Body:
 ```
 {
-    "type": "SELL",
+    "type": "BUY",
     "securityId": "61117a7160b44d48af5268ed",
     "quantity": 2
 }
 ```
 
+Response:
 ```
 {
   "type": "BUY",
@@ -91,14 +93,15 @@ Content-Type: application/json
 ```
 
 POST http://localhost:3001/api/trading/transactions/deposit
-Content-Type: application/json
 
+Request Body:
 ```
 {
     "quantity": 1000
 }
 ```
 
+Response:
 ```
 {
   "type": "DEPOSIT",
