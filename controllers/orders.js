@@ -50,10 +50,6 @@ ordersRouter.post('/', async (req, res) => {
 
 		cashPosition = await getCashPosition()
 
-		if (!cashPosition) {
-			throw new Error('Could not retrieve cash position from database')
-		}
-
 		// if the order is a buy, ensure there is enough cash to complete it
 		if (type === 'BUY') {
 			if (cashPosition.quantity < total) throw new Error('Not enough cash to complete order!')
@@ -61,7 +57,7 @@ ordersRouter.post('/', async (req, res) => {
 
 		/* 
         1. Save the order
-        2. Update the security position
+        2. Update or insert the security position
         3. Insert a new transaction
         4. Update the cash position
         */
@@ -71,12 +67,11 @@ ordersRouter.post('/', async (req, res) => {
 		try {
 			await upsertPosition(id, quantity, type, total)
 			await insertTransaction(type, quantity, securityPrice, newOrder.id)
+			await updateCashPosition(cashPosition, total, type)
 		} catch (err) {
 			logger.error(err)
 			throw new Error('Could not save position or transaction to database')
 		}
-
-		await updateCashPosition(cashPosition, total, type)
 
 		res.status(201).json(newOrder)
 	} catch (err) {

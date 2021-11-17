@@ -32,18 +32,9 @@ transactionsRouter.post('/deposit', async (req, res) => {
 		})
 
 		// save CAD cash position
-		try {
-			const securityIdCAD = await getCAD()
-			upsertPosition(securityIdCAD, req.body.quantity, type)
-		} catch (err) {
-			const message = 'Could not save new position to database'
-			logger.error({
-				message: message,
-				error: err,
-			})
-			res.status(400).json(message)
-		}
 
+		const securityIdCAD = await getCAD()
+		await upsertPosition(securityIdCAD, req.body.quantity, type)
 		await newTransaction.save()
 		res.status(201).json(newTransaction)
 	} catch (err) {
