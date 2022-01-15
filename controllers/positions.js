@@ -43,7 +43,7 @@ positionsRouter.get('/equity', async (req, res) => {
 positionsRouter.get('/cash', async (req, res) => {
 	try {
 		const cashPosition = await getCashPosition()
-		const cash = cashPosition && cashPosition.bookValue > 0 ? cashPosition.bookValue : 0
+		const cash = cashPosition && cashPosition.bookValue > 0 ? round(cashPosition.bookValue) : 0
 		res.status(200).json(cash)
 	} catch (err) {
 		const message = 'Could not retrieve cash position from database'
